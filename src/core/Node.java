@@ -28,6 +28,18 @@ public class Node {
 				this.localview.add(r);
 			}
 		}
+		
+		//CLEAN VIEW
+		ArrayList<Reference> torem = new ArrayList<Reference>();
+		for (Reference r : this.localview){
+			if(group(r.position)!=this.group){
+				torem.add(r);
+			}
+		}
+		for(Reference r : torem){
+			this.localview.remove(r);
+		}
+		
 		//SEARCH FOR VIOLATIONS
 		int estimation = countEqual();
 		if(this.id==1){
