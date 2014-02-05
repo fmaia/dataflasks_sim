@@ -41,7 +41,7 @@ public class Node {
 		}
 		
 		//SEARCH FOR VIOLATIONS
-		int estimation = countEqual();
+		int estimation = this.localview.size(); //countEqual();
 		if(this.id==1){
 			System.out.println("conta actual:"+estimation);
 		}
@@ -57,15 +57,15 @@ public class Node {
 		
 	}
 	
-	private int countEqual(){
-		int res = 0;
-		for (Reference r : this.localview){
-			if(group(r.position)==this.group){
-				res = res +1;
-			}
-		}
-		return res;
-	}
+//	private int countEqual(){
+//		int res = 0;
+//		for (Reference r : this.localview){
+//			if(group(r.position)==this.group){
+//				res = res +1;
+//			}
+//		}
+//		return res;
+//	}
 	
 	private int group(double peerpos){
 		int temp = (int) Math.ceil((new Double(this.ngroups))*peerpos);

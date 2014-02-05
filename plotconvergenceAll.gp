@@ -8,7 +8,7 @@ set output "convergenceAll.eps"
 #set boxwidth 1
 
 
-set xrange [0:2000]
+set xrange [0:2500]
 set yrange [0:100]
 set xlabel "Time (s)"
 set ylabel "Number of nodes"

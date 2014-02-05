@@ -1,9 +1,8 @@
 #!/bin/bash
 
-rm -rf src/*.txt
-cd src
+rm -rf *.txt
 javac core/*.java
 java core.Main 16384 5000 16 100
-cd ..
-./parserAll.py 1024 src/*.txt
-gnuplot -e "coluna=12" plotconvergenceAll.gp
+./parserAll.py 1024 ./*.txt
+#gnuplot -e "coluna=12" plotconvergenceAll.gp
+#rm -rf *.txt

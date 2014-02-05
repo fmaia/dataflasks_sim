@@ -9,7 +9,7 @@ def parseFile(pathIn,desired) :
     global farnodes
     level = 1
     fIn = open(pathIn,'r')
-    time = pathIn.split(".")[0].split("/")[1]
+    time = pathIn.split(".")[1].split("/")[1]
     lines = fIn.readlines()
     nlines = len(lines)
 
