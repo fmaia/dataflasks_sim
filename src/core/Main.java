@@ -24,7 +24,7 @@ public class Main {
 	public static int churnstart;
 	public static int churnstop;
 	public static int maxage;
-	
+	public static boolean local;
 	
 	private static class Worker extends Thread{
 		private Node p;
@@ -62,6 +62,7 @@ public class Main {
 		churnstart = Integer.parseInt(prop.getProperty("churnstart"));
 		churnstop = Integer.parseInt(prop.getProperty("churnstop"));
 		boolean singlechurn = (churnstop==churnstart);
+		local = Boolean.parseBoolean(prop.getProperty("local"));
 		
 		grnd = new Random();
 		nodelist = new HashMap<Integer,Node>();
@@ -147,18 +148,18 @@ public class Main {
 	}
 	
 	
-	
 	private static ArrayList<Reference> getRandomView(int viewsize, Random rnd, int id, ArrayList<Integer> aliveids,int alsize){
 		ArrayList<Reference> res = new ArrayList<Reference>();
 		
 		for(int i=1;i<=viewsize;i++){
 			int pos = rnd.nextInt(alsize);
 			int sample = aliveids.get(pos);
-			while(res.contains(new Reference(sample,0.0,0)) || sample == id){
+			while(res.contains(new Reference(sample,0.0,0,null)) || sample == id){
 				pos = rnd.nextInt(alsize);
 				sample = aliveids.get(pos);
 			}
-			res.add(new Reference(sample,nodelist.get(sample).position,0));
+			Node t = nodelist.get(sample);
+			res.add(new Reference(sample,t.position,0,t));
 		}
 		
 		return res;
@@ -167,14 +168,14 @@ public class Main {
 	private static void addNode(){
 		lastid = lastid + 1;
 		double nodeposition = new Double(lastid)/new Double(nodes);
-		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage));
+		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage,local));
 		System.out.println("Node added. ID:"+lastid+" POSITION:"+nodeposition);
 	}
 	
 	private static void addNodeRandomPos(){
 		lastid = lastid + 1;
 		double nodeposition = grnd.nextDouble();
-		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage));
+		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage,local));
 		System.out.println("Node added. ID:"+lastid+" POSITION:"+nodeposition);
 	}
 	

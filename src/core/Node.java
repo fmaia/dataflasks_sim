@@ -11,8 +11,9 @@ public class Node {
 	private int group;
 	private int replicationfactor;
 	private int maxage;
+	private boolean local;
 	
-	public Node(int id,double position, int replicationfactor,int maxage){
+	public Node(int id,double position, int replicationfactor,int maxage, boolean local){
 		this.id = id;
 		this.position = position;
 		this.ngroups = 1;
@@ -20,6 +21,7 @@ public class Node {
 		this.replicationfactor = replicationfactor;
 		this.localview = new ArrayList<Reference>();
 		this.maxage = maxage;
+		this.local = local;
 	}
 	
 	
@@ -120,6 +122,18 @@ public class Node {
 		}
 		this.group = group(this.position);
 		
+		//SEND LOCAL VIEW TO NEIGHBORS
+		if(local){
+			Reference myself = new Reference(this.id,this.position,0,this);
+			ArrayList<Reference> tosend = new ArrayList<Reference>();
+			tosend.add(myself);
+			for(Reference r : this.localview){
+				tosend.add((Reference)r.clone());
+			}
+			for(Reference r : this.localview){
+				r.noderef.receiveLocalMessage(tosend);
+			}
+		}
 	}
 	
 //	private int countEqual(){
