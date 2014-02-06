@@ -23,6 +23,20 @@ public class Main {
 	public static int nchurn;
 	public static int churnstart;
 	public static int churnstop;
+	public static int maxage;
+	
+	
+	private static class Worker extends Thread{
+		private Node p;
+		private ArrayList<Reference> msg;
+		public Worker(Node p, ArrayList<Reference> msg){
+			this.p = p;
+			this.msg = msg;
+		}
+		public void run(){
+			p.receiveMessage(msg);
+		}
+	}
 	
 	public static void main(String[] args) {
 		
@@ -42,6 +56,7 @@ public class Main {
 		nodes = Integer.parseInt(prop.getProperty("nodes"));
 		replicationfactor = Integer.parseInt(prop.getProperty("replicationfactor"));
 		viewsize = Integer.parseInt(prop.getProperty("viewsize"));
+		maxage = Integer.parseInt(prop.getProperty("maxage"));
 		churntype = prop.getProperty("churntype");
 		nchurn = Integer.parseInt(prop.getProperty("nchurn"));
 		churnstart = Integer.parseInt(prop.getProperty("churnstart"));
@@ -75,17 +90,30 @@ public class Main {
 					aliveids.add(aid);
 					alsize = alsize + 1;
 				}
-
+				ArrayList<Worker> threads = new ArrayList<Worker>();
 				//For each alive node send a new PSS message
 				for(int i : nodelist.keySet()){
 					
 					ArrayList<Reference> message = getRandomView(viewsize,grnd,i,aliveids,alsize);
 					Node current = nodelist.get(i);
-					current.receiveMessage(message);
-					//Logging node state after processing message
-					fout.write(i+" "+current.group+" "+current.ngroups);
-					fout.write("\n");
+					Worker a = new Worker(current,message);
+					threads.add(a);
+					a.start();
 
+				}
+				for(Worker w : threads){
+					try {
+						w.join();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				for(int i : nodelist.keySet()){
+					Node current = nodelist.get(i);
+					//Logging node state after processing message
+					fout.write(i+" "+current.getGroup()+" "+current.getNgroups());
+					fout.write("\n");
 				}
 				fout.close();
 				
@@ -118,6 +146,8 @@ public class Main {
 		
 	}
 	
+	
+	
 	private static ArrayList<Reference> getRandomView(int viewsize, Random rnd, int id, ArrayList<Integer> aliveids,int alsize){
 		ArrayList<Reference> res = new ArrayList<Reference>();
 		
@@ -137,14 +167,14 @@ public class Main {
 	private static void addNode(){
 		lastid = lastid + 1;
 		double nodeposition = new Double(lastid)/new Double(nodes);
-		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor));
+		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage));
 		System.out.println("Node added. ID:"+lastid+" POSITION:"+nodeposition);
 	}
 	
 	private static void addNodeRandomPos(){
 		lastid = lastid + 1;
 		double nodeposition = grnd.nextDouble();
-		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor));
+		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage));
 		System.out.println("Node added. ID:"+lastid+" POSITION:"+nodeposition);
 	}
 	
