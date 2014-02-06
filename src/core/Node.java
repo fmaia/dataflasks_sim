@@ -68,8 +68,9 @@ public class Node {
 		}
 	}
 	
-	public synchronized void receiveMessage(ArrayList<Reference> received){
-		
+	public void receiveMessage(ArrayList<Reference> received){
+		ArrayList<Reference> tosend = new ArrayList<Reference>();
+		synchronized(this){
 		//AGING VIEW
 		for(Reference r : localview){
 			r.age = r.age + 1;
@@ -122,16 +123,21 @@ public class Node {
 		}
 		this.group = group(this.position);
 		
-		//SEND LOCAL VIEW TO NEIGHBORS
 		if(local){
 			Reference myself = new Reference(this.id,this.position,0,this);
-			ArrayList<Reference> tosend = new ArrayList<Reference>();
 			tosend.add(myself);
 			for(Reference r : this.localview){
 				tosend.add((Reference)r.clone());
 			}
-			for(Reference r : this.localview){
-				r.noderef.receiveLocalMessage(tosend);
+		}
+		
+		}
+		//SEND LOCAL VIEW TO NEIGHBORS
+		if(local){
+			for(Reference r : tosend){
+				if(r.id!=this.id){
+					r.noderef.receiveLocalMessage(tosend);
+				}
 			}
 		}
 	}
