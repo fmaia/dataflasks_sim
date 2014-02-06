@@ -100,7 +100,7 @@ public class Main {
 					Worker a = new Worker(current,message);
 					threads.add(a);
 					a.start();
-
+					System.out.println("Worker Launched for id" + i + " in cycle "+cycle);
 				}
 				for(Worker w : threads){
 					try {

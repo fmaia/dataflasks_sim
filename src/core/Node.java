@@ -54,14 +54,14 @@ public class Node {
 		//ADD RECEIVED
 		for (Reference r : received){
 			if(group(r.position)==this.group && !(r.id==this.id)){
-				if(!this.localview.contains(r)){
+				int index = this.localview.indexOf(r);
+				if(index==-1){
 					this.localview.add(r);
 				}
 				else{
-					int index = this.localview.indexOf(r);
-					if(this.localview.get(index).age>r.age){
-						this.localview.remove(index);
-						this.localview.add(r);
+					Reference current = this.localview.get(index);
+					if(current.age>r.age){
+						current.age = r.age;
 					}
 				}
 			}
@@ -70,68 +70,70 @@ public class Node {
 	
 	public void receiveMessage(ArrayList<Reference> received){
 		ArrayList<Reference> tosend = new ArrayList<Reference>();
-		synchronized(this){
-		//AGING VIEW
-		for(Reference r : localview){
-			r.age = r.age + 1;
-		}
 		
-		//ADD RECEIVED
-		for (Reference r : received){
-			if(group(r.position)==this.group && !(r.id==this.id)){
-				if(!this.localview.contains(r)){
-					this.localview.add(r);
-				}
-				else{
-					int index = this.localview.indexOf(r);
-					if(this.localview.get(index).age>r.age){
-						this.localview.remove(index);
+		synchronized(this){
+			//AGING VIEW
+			for(Reference r : localview){
+				r.age = r.age + 1;
+			}
+
+			//ADD RECEIVED
+			for (Reference r : received){
+				if(group(r.position)==this.group && !(r.id==this.id)){
+					if(!this.localview.contains(r)){
 						this.localview.add(r);
+					}
+					else{
+						int index = this.localview.indexOf(r);
+						if(this.localview.get(index).age>r.age){
+							this.localview.remove(index);
+							this.localview.add(r);
+						}
 					}
 				}
 			}
-		}
-		
-		//CLEAN VIEW
-		ArrayList<Reference> torem = new ArrayList<Reference>();
-		for (Reference r : this.localview){
-			if(group(r.position)!=this.group){
-				torem.add(r);
-			}
-			else{
-				if(r.age>maxage){
+
+			//CLEAN VIEW
+			ArrayList<Reference> torem = new ArrayList<Reference>();
+			for (Reference r : this.localview){
+				if(group(r.position)!=this.group){
 					torem.add(r);
 				}
+				else{
+					if(r.age>maxage){
+						torem.add(r);
+					}
+				}
 			}
-		}
-		for(Reference r : torem){
-			this.localview.remove(r);
-		}
-		
-		//SEARCH FOR VIOLATIONS
-		int estimation = this.localview.size(); //countEqual();
-		if(this.id==1){
-			System.out.println("conta actual:"+estimation);
-		}
-		if((estimation+1)<this.replicationfactor){
-			if(this.ngroups>1){
-				this.ngroups = this.ngroups/2; 
+			for(Reference r : torem){
+				this.localview.remove(r);
 			}
-		}
-		if((estimation+1)>this.replicationfactor){
-			this.ngroups = this.ngroups*2;
-		}
-		this.group = group(this.position);
-		
-		if(local){
-			Reference myself = new Reference(this.id,this.position,0,this);
-			tosend.add(myself);
-			for(Reference r : this.localview){
-				tosend.add((Reference)r.clone());
+
+			//SEARCH FOR VIOLATIONS
+			int estimation = this.localview.size(); //countEqual();
+			if(this.id==1){
+				System.out.println("conta actual:"+estimation);
 			}
+			if((estimation+1)<this.replicationfactor){
+				if(this.ngroups>1){
+					this.ngroups = this.ngroups/2; 
+				}
+			}
+			if((estimation+1)>this.replicationfactor){
+				this.ngroups = this.ngroups*2;
+			}
+			this.group = group(this.position);
+
+			if(local){
+				Reference myself = new Reference(this.id,this.position,0,this);
+				tosend.add(myself);
+				for(Reference r : this.localview){
+					tosend.add((Reference)r.clone());
+				}
+			}
+
 		}
-		
-		}
+		System.out.println("message processed at "+this.id+" going to send local msgs.");
 		//SEND LOCAL VIEW TO NEIGHBORS
 		if(local){
 			for(Reference r : tosend){
@@ -142,15 +144,6 @@ public class Node {
 		}
 	}
 	
-//	private int countEqual(){
-//		int res = 0;
-//		for (Reference r : this.localview){
-//			if(group(r.position)==this.group){
-//				res = res +1;
-//			}
-//		}
-//		return res;
-//	}
 	
 	private int group(double peerpos){
 		int temp = (int) Math.ceil((new Double(this.ngroups))*peerpos);
@@ -161,3 +154,15 @@ public class Node {
 	}
 	
 }
+
+
+
+//private int countEqual(){
+//int res = 0;
+//for (Reference r : this.localview){
+//	if(group(r.position)==this.group){
+//		res = res +1;
+//	}
+//}
+//return res;
+//}
