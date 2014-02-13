@@ -25,16 +25,19 @@ public class Main {
 	public static int churnstop;
 	public static int maxage;
 	public static boolean local;
+	public static int localinterval;
 	
 	private static class Worker extends Thread{
 		private Node p;
 		private ArrayList<Reference> msg;
-		public Worker(Node p, ArrayList<Reference> msg){
+		private int cycle;
+		public Worker(Node p, ArrayList<Reference> msg,int cycle){
 			this.p = p;
 			this.msg = msg;
+			this.cycle = cycle;
 		}
 		public void run(){
-			p.receiveMessage(msg);
+			p.receiveMessage(msg,cycle);
 		}
 	}
 	
@@ -63,6 +66,7 @@ public class Main {
 		churnstop = Integer.parseInt(prop.getProperty("churnstop"));
 		boolean singlechurn = (churnstop==churnstart);
 		local = Boolean.parseBoolean(prop.getProperty("local"));
+		localinterval = Integer.parseInt(prop.getProperty("localinterval"));
 		
 		grnd = new Random();
 		nodelist = new HashMap<Integer,Node>();
@@ -97,10 +101,10 @@ public class Main {
 					
 					ArrayList<Reference> message = getRandomView(viewsize,grnd,i,aliveids,alsize);
 					Node current = nodelist.get(i);
-					Worker a = new Worker(current,message);
+					Worker a = new Worker(current,message,cycle);
 					threads.add(a);
 					a.start();
-					System.out.println("Worker Launched for id" + i + " in cycle "+cycle);
+					//System.out.println("Worker Launched for id" + i + " in cycle "+cycle);
 				}
 				for(Worker w : threads){
 					try {
@@ -121,13 +125,23 @@ public class Main {
 				//CHURN---------------------------------------------------------------
 				if(churnstart!=0 && cycle>=churnstart && cycle<=churnstop){
 					if(churntype.equals("remove") || churntype.equals("both")){
-						for(int j=0;j<nchurn;j++) {
-							removeRandomNode();
+						int nnodes = nodelist.size();
+						for(int j=1;j<=nnodes;j++) {
+							//aliveids = new ArrayList<Integer>();
+							//alsize = 0;
+							//for(Integer aid : nodelist.keySet()){
+							//	aliveids.add(aid);
+							//	alsize = alsize + 1;
+							//}
+							//removeRandomNode(aliveids,alsize);
+							if(j%2==0){
+								nodelist.remove(j);
+							}
 						}
 					}
 					if(churntype.equals("add") || churntype.equals("both")){
-						for(int j=0;j<nchurn;j++) {
-							addNodeRandomPos();
+						for(int j=1;j<=nchurn;j++) {
+							addNodeUniform(j,nchurn);
 						}
 					}
 
@@ -168,21 +182,28 @@ public class Main {
 	private static void addNode(){
 		lastid = lastid + 1;
 		double nodeposition = new Double(lastid)/new Double(nodes);
-		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage,local));
+		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage,local,localinterval));
+		System.out.println("Node added. ID:"+lastid+" POSITION:"+nodeposition);
+	}
+	
+	private static void addNodeUniform(int localid, int nodesadded){
+		lastid = lastid + 1;
+		double nodeposition = new Double(localid)/new Double(nodesadded);
+		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage,local,localinterval));
 		System.out.println("Node added. ID:"+lastid+" POSITION:"+nodeposition);
 	}
 	
 	private static void addNodeRandomPos(){
 		lastid = lastid + 1;
 		double nodeposition = grnd.nextDouble();
-		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage,local));
+		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage,local,localinterval));
 		System.out.println("Node added. ID:"+lastid+" POSITION:"+nodeposition);
 	}
 	
-	private static void removeRandomNode(){
-		int nnodes = nodelist.size();
-		int rpos = grnd.nextInt(nnodes)+1;
-		nodelist.remove(rpos);
+	private static void removeRandomNode(ArrayList<Integer> aliveids,int alsize){
+		int pos = grnd.nextInt(alsize);
+		int sample = aliveids.get(pos);
+		nodelist.remove(sample);
 	}
 	
 	@SuppressWarnings("unused")

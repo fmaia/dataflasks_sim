@@ -12,8 +12,9 @@ public class Node {
 	private int replicationfactor;
 	private int maxage;
 	private boolean local;
+	private int localinterval;
 	
-	public Node(int id,double position, int replicationfactor,int maxage, boolean local){
+	public Node(int id,double position, int replicationfactor,int maxage, boolean local,int localinterval){
 		this.id = id;
 		this.position = position;
 		this.ngroups = 1;
@@ -22,6 +23,7 @@ public class Node {
 		this.localview = new ArrayList<Reference>();
 		this.maxage = maxage;
 		this.local = local;
+		this.localinterval = localinterval;
 	}
 	
 	
@@ -68,7 +70,7 @@ public class Node {
 		}
 	}
 	
-	public void receiveMessage(ArrayList<Reference> received){
+	public void receiveMessage(ArrayList<Reference> received,int cycle){
 		ArrayList<Reference> tosend = new ArrayList<Reference>();
 		
 		synchronized(this){
@@ -133,9 +135,9 @@ public class Node {
 			}
 
 		}
-		System.out.println("message processed at "+this.id+" going to send local msgs.");
+		//System.out.println("message processed at "+this.id+" going to send local msgs.");
 		//SEND LOCAL VIEW TO NEIGHBORS
-		if(local){
+		if(local && (cycle%this.localinterval==0)){
 			for(Reference r : tosend){
 				if(r.id!=this.id){
 					r.noderef.receiveLocalMessage(tosend);
