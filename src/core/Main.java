@@ -12,7 +12,7 @@ import java.util.Random;
 
 public class Main {
 
-	public static HashMap<Integer,Node> nodelist;
+	public static HashMap<Integer,NodeInterface> nodelist;
 	public static int cycles;
 	public static int nodes;
 	public static int lastid;
@@ -26,12 +26,14 @@ public class Main {
 	public static int maxage;
 	public static boolean local;
 	public static int localinterval;
+	public static boolean flex;
+	public static int replicationfactorMax;
 	
 	private static class Worker extends Thread{
-		private Node p;
+		private NodeInterface p;
 		private ArrayList<Reference> msg;
 		private int cycle;
-		public Worker(Node p, ArrayList<Reference> msg,int cycle){
+		public Worker(NodeInterface p, ArrayList<Reference> msg,int cycle){
 			this.p = p;
 			this.msg = msg;
 			this.cycle = cycle;
@@ -67,9 +69,11 @@ public class Main {
 		boolean singlechurn = (churnstop==churnstart);
 		local = Boolean.parseBoolean(prop.getProperty("local"));
 		localinterval = Integer.parseInt(prop.getProperty("localinterval"));
+		flex = Boolean.parseBoolean(prop.getProperty("flex"));
+		replicationfactorMax = Integer.parseInt(prop.getProperty("replicationfactorMax"));
 		
 		grnd = new Random();
-		nodelist = new HashMap<Integer,Node>();
+		nodelist = new HashMap<Integer,NodeInterface>();
 		
 		//Adding initial nodes
 		for(int i=1;i<=nodes;i++){
@@ -100,7 +104,7 @@ public class Main {
 				for(int i : nodelist.keySet()){
 					
 					ArrayList<Reference> message = getRandomView(viewsize,grnd,i,aliveids,alsize);
-					Node current = nodelist.get(i);
+					NodeInterface current = nodelist.get(i);
 					Worker a = new Worker(current,message,cycle);
 					threads.add(a);
 					a.start();
@@ -115,7 +119,7 @@ public class Main {
 					}
 				}
 				for(int i : nodelist.keySet()){
-					Node current = nodelist.get(i);
+					NodeInterface current = nodelist.get(i);
 					//Logging node state after processing message
 					fout.write(i+" "+current.getGroup()+" "+current.getNgroups());
 					fout.write("\n");
@@ -172,8 +176,8 @@ public class Main {
 				pos = rnd.nextInt(alsize);
 				sample = aliveids.get(pos);
 			}
-			Node t = nodelist.get(sample);
-			res.add(new Reference(sample,t.position,0,t));
+			NodeInterface t = nodelist.get(sample);
+			res.add(new Reference(sample,t.getPosition(),0,t));
 		}
 		
 		return res;
@@ -182,21 +186,36 @@ public class Main {
 	private static void addNode(){
 		lastid = lastid + 1;
 		double nodeposition = new Double(lastid)/new Double(nodes);
-		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage,local,localinterval));
+		if(flex){
+			nodelist.put(lastid, new NodeRepFlex(lastid,nodeposition,replicationfactor,replicationfactorMax,maxage,local,localinterval));
+		}
+		else{
+			nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage,local,localinterval));
+		}
 		System.out.println("Node added. ID:"+lastid+" POSITION:"+nodeposition);
 	}
 	
 	private static void addNodeUniform(int localid, int nodesadded){
 		lastid = lastid + 1;
 		double nodeposition = new Double(localid)/new Double(nodesadded);
-		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage,local,localinterval));
+		if(flex){
+			nodelist.put(lastid, new NodeRepFlex(lastid,nodeposition,replicationfactor,replicationfactorMax,maxage,local,localinterval));
+		}
+		else{
+			nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage,local,localinterval));
+		}
 		System.out.println("Node added. ID:"+lastid+" POSITION:"+nodeposition);
 	}
 	
 	private static void addNodeRandomPos(){
 		lastid = lastid + 1;
 		double nodeposition = grnd.nextDouble();
-		nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage,local,localinterval));
+		if(flex){
+			nodelist.put(lastid, new NodeRepFlex(lastid,nodeposition,replicationfactor,replicationfactorMax,maxage,local,localinterval));
+		}
+		else{
+			nodelist.put(lastid, new Node(lastid,nodeposition,replicationfactor,maxage,local,localinterval));
+		}
 		System.out.println("Node added. ID:"+lastid+" POSITION:"+nodeposition);
 	}
 	

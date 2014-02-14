@@ -38,7 +38,7 @@ if __name__ == '__main__' :
         sys.exit()
 
     nbInputs = len(sys.argv) -1
-    pathOut = "convergenceAll.txt"
+    pathOut = "convergenceAll.log"
     print nbInputs
     for x in xrange(2,nbInputs+1):
         print 'Parsing: ', sys.argv[x]

@@ -5,9 +5,9 @@ public class Reference {
 	public int age;
 	public double position;
 	public int id;
-	public Node noderef;
+	public NodeInterface noderef;
 	
-	public Reference(int id,double position,int age,Node n){
+	public Reference(int id,double position,int age,NodeInterface n){
 		this.age = age;
 		this.id = id;
 		this.position = position;

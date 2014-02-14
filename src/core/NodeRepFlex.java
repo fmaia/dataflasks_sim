@@ -2,24 +2,27 @@ package core;
 
 import java.util.ArrayList;
 
-public class Node implements NodeInterface {
+public class NodeRepFlex implements NodeInterface {
 
+	
 	private ArrayList<Reference> localview;
 	private int id;
 	public double position;
 	private int ngroups;
 	private int group;
-	private int replicationfactor;
+	private int replicationfactorMax;
+	private int replicationfactorMin;
 	private int maxage;
 	private boolean local;
 	private int localinterval;
 	
-	public Node(int id,double position, int replicationfactor,int maxage, boolean local,int localinterval){
+	public NodeRepFlex(int id,double position, int replicationfactorMin,int replicationfactorMax, int maxage, boolean local,int localinterval){
 		this.id = id;
 		this.position = position;
 		this.ngroups = 1;
 		this.group = 1;
-		this.replicationfactor = replicationfactor;
+		this.replicationfactorMin = replicationfactorMin;
+		this.replicationfactorMax = replicationfactorMax;
 		this.localview = new ArrayList<Reference>();
 		this.maxage = maxage;
 		this.local = local;
@@ -36,31 +39,32 @@ public class Node implements NodeInterface {
 		return ngroups;
 	}
 
-
-
 	@Override
 	public synchronized void setNgroups(int ngroups) {
 		this.ngroups = ngroups;
+
 	}
-
-
 
 	@Override
 	public synchronized int getGroup() {
-		return group;
+		return this.group;
 	}
-
-
 
 	@Override
 	public synchronized void setGroup(int group) {
 		this.group = group;
 	}
 
-
-
+	private int group(double peerpos){
+		int temp = (int) Math.ceil((new Double(this.ngroups))*peerpos);
+		if(temp == 0){
+			temp = 1;
+		}
+		return temp;
+	}
+	
 	@Override
-	public synchronized void receiveLocalMessage(ArrayList<Reference> received){
+	public synchronized void receiveLocalMessage(ArrayList<Reference> received) {
 		//ADD RECEIVED
 		for (Reference r : received){
 			if(group(r.position)==this.group && !(r.id==this.id)){
@@ -76,12 +80,13 @@ public class Node implements NodeInterface {
 				}
 			}
 		}
+
 	}
-	
+
 	@Override
-	public void receiveMessage(ArrayList<Reference> received,int cycle){
+	public void receiveMessage(ArrayList<Reference> received, int cycle) {
 		ArrayList<Reference> tosend = new ArrayList<Reference>();
-		
+
 		synchronized(this){
 			//AGING VIEW
 			for(Reference r : localview){
@@ -125,12 +130,12 @@ public class Node implements NodeInterface {
 			if(this.id==1){
 				System.out.println("conta actual:"+estimation);
 			}
-			if((estimation+1)<this.replicationfactor){
+			if((estimation+1)<this.replicationfactorMin){
 				if(this.ngroups>1){
 					this.ngroups = this.ngroups/2; 
 				}
 			}
-			if((estimation+1)>this.replicationfactor){
+			if((estimation+1)>this.replicationfactorMax){
 				this.ngroups = this.ngroups*2;
 			}
 			this.group = group(this.position);
@@ -153,27 +158,7 @@ public class Node implements NodeInterface {
 				}
 			}
 		}
+
 	}
-	
-	
-	private int group(double peerpos){
-		int temp = (int) Math.ceil((new Double(this.ngroups))*peerpos);
-		if(temp == 0){
-			temp = 1;
-		}
-		return temp;
-	}
-	
+
 }
-
-
-
-//private int countEqual(){
-//int res = 0;
-//for (Reference r : this.localview){
-//	if(group(r.position)==this.group){
-//		res = res +1;
-//	}
-//}
-//return res;
-//}
