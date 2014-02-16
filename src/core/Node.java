@@ -147,6 +147,9 @@ public class Node implements NodeInterface {
 		//System.out.println("message processed at "+this.id+" going to send local msgs.");
 		//SEND LOCAL VIEW TO NEIGHBORS
 		if(local && (cycle%this.localinterval==0)){
+			if(this.id==1){
+				System.out.println("Sending Local Views.");
+			}
 			for(Reference r : tosend){
 				if(r.id!=this.id){
 					r.noderef.receiveLocalMessage(tosend);
